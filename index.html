@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C & R — 2 Años de Amor Eterno</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #fdf6ee;
+    --rose: #c8526b;
+    --rose-light: #e8899a;
+    --rose-dark: #8b2d42;
+    --gold: #c9973a;
+    --gold-light: #e8c97a;
+    --ink: #1a0a0f;
+    --petal: #f5c2cc;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--ink);
+    color: var(--cream);
+    font-family: 'Cormorant Garamond', serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── CURSOR ── */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--rose-light);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, background 0.3s;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1px solid var(--gold-light);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: all 0.15s ease;
+    opacity: 0.6;
+  }
+
+  /* ── CANVAS STARS ── */
+  #starfield {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── PETALS ── */
+  .petal {
+    position: fixed;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    animation: fallPetal linear infinite;
+  }
+  .petal svg { fill: var(--petal); }
+  @keyframes fallPetal {
+    0%   { transform: translateY(-80px) rotate(0deg) translateX(0); opacity: 0; }
+    10%  { opacity: 0.7; }
+    90%  { opacity: 0.4; }
+    100% { transform: translateY(110vh) rotate(720deg) translateX(60px); opacity: 0; }
+  }
+
+  /* ── SECTIONS ── */
+  section { position: relative; z-index: 2; }
+
+  /* ══════════════════════════════════════
+     HERO
+  ══════════════════════════════════════ */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    background: radial-gradient(ellipse at 50% 40%, #3a0a1a 0%, #1a0a0f 60%, #0a0508 100%);
+    overflow: hidden;
+  }
+
+  .hero-vignette {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(200,82,107,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 50% 100%, rgba(201,151,58,0.1) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .hero-ornament {
+    font-size: 1rem;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    opacity: 0;
+    animation: fadeUp 1.2s 0.3s forwards;
+    text-transform: uppercase;
+  }
+
+  .hero-monogram {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(5rem, 18vw, 14rem);
+    font-weight: 600;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--gold-light) 0%, var(--rose-light) 40%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 0;
+    animation: fadeUp 1.4s 0.6s forwards;
+    position: relative;
+    text-shadow: none;
+    filter: drop-shadow(0 0 40px rgba(200,82,107,0.4));
+  }
+
+  .hero-ampersand {
+    display: block;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.4em;
+    background: linear-gradient(135deg, var(--rose-light), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 0.8;
+  }
+
+  .hero-title {
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(1.8rem, 5vw, 3.5rem);
+    font-weight: 400;
+    color: var(--cream);
+    opacity: 0;
+    animation: fadeUp 1.4s 1s forwards;
+    margin-top: 0.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  .hero-line {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin: 2rem 0;
+    opacity: 0;
+    animation: fadeUp 1.4s 1.3s forwards;
+  }
+  .hero-line::before, .hero-line::after {
+    content: '';
+    flex: 1;
+    max-width: 120px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold));
+  }
+  .hero-line::after { background: linear-gradient(to left, transparent, var(--gold)); }
+  .hero-line span {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.35em;
+    color: var(--gold-light);
+    text-transform: uppercase;
+  }
+
+  .hero-date {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.9rem, 2.5vw, 1.3rem);
+    color: var(--rose-light);
+    letter-spacing: 0.3em;
+    opacity: 0;
+    animation: fadeUp 1.4s 1.5s forwards;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0;
+    animation: fadeIn 2s 3s forwards;
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    cursor: pointer;
+  }
+  .scroll-arrow {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    animation: scrollPulse 2s infinite;
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.2); }
+  }
+
+  /* ══════════════════════════════════════
+     COUNTER SECTION
+  ══════════════════════════════════════ */
+  #counter {
+    padding: 8rem 2rem;
+    text-align: center;
+    background: linear-gradient(180deg, var(--ink) 0%, #1e0810 50%, var(--ink) 100%);
+  }
+
+  .section-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.5em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    opacity: 0;
+    transition: opacity 0.8s;
+  }
+  .section-label.visible { opacity: 1; }
+
+  .counter-grid {
+    display: flex;
+    justify-content: center;
+    gap: clamp(1.5rem, 5vw, 4rem);
+    margin: 3rem 0;
+    flex-wrap: wrap;
+  }
+
+  .counter-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .counter-item.visible { opacity: 1; transform: translateY(0); }
+  .counter-item:nth-child(2) { transition-delay: 0.1s; }
+  .counter-item:nth-child(3) { transition-delay: 0.2s; }
+  .counter-item:nth-child(4) { transition-delay: 0.3s; }
+
+  .counter-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3.5rem, 10vw, 7rem);
+    font-weight: 300;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--gold-light), var(--rose-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    min-width: 3ch;
+    text-align: center;
+  }
+  .counter-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.4em;
+    color: var(--rose-light);
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  .counter-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    color: var(--cream);
+    opacity: 0.7;
+    margin-top: 1rem;
+    opacity: 0;
+    transition: opacity 0.8s 0.4s;
+  }
+  .counter-tagline.visible { opacity: 0.7; }
+
+  /* ══════════════════════════════════════
+     PHOTOS SECTION
+  ══════════════════════════════════════ */
+  #photos {
+    padding: 6rem 2rem 8rem;
+    background: #0e0508;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #photos::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 100px;
+    background: linear-gradient(to bottom, transparent, var(--gold), transparent);
+  }
+
+  .photos-header {
+    text-align: center;
+    margin-bottom: 4rem;
+  }
+  .photos-title {
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    color: var(--cream);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 1s;
+  }
+  .photos-title.visible { opacity: 1; transform: translateY(0); }
+
+  .photos-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  @media (max-width: 700px) {
+    .photos-grid { grid-template-columns: 1fr; max-width: 380px; }
+  }
+
+  .photo-card {
+    position: relative;
+    aspect-ratio: 3/4;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(50px) scale(0.95);
+    transition: all 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .photo-card.visible { opacity: 1; transform: translateY(0) scale(1); }
+  .photo-card:nth-child(2) { transition-delay: 0.15s; margin-top: 2rem; }
+  .photo-card:nth-child(3) { transition-delay: 0.3s; }
+
+  .photo-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(201,151,58,0.3);
+    z-index: 2;
+    transition: border-color 0.4s;
+  }
+  .photo-card:hover::before { border-color: rgba(201,151,58,0.8); }
+
+  .photo-card img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: sepia(20%) contrast(1.05) brightness(0.9);
+    transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), filter 0.6s;
+  }
+  .photo-card:hover img {
+    transform: scale(1.06);
+    filter: sepia(0%) contrast(1.1) brightness(1);
+  }
+
+  .photo-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(26,10,15,0.8) 0%, transparent 50%);
+    z-index: 1;
+    transition: opacity 0.4s;
+  }
+  .photo-card:hover .photo-overlay { opacity: 0.4; }
+
+  .photo-caption {
+    position: absolute;
+    bottom: 1.2rem;
+    left: 1.2rem;
+    right: 1.2rem;
+    z-index: 3;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--cream);
+    opacity: 0.9;
+    text-shadow: 0 1px 10px rgba(0,0,0,0.8);
+  }
+  .photo-caption small {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-style: normal;
+    font-size: 0.55rem;
+    letter-spacing: 0.3em;
+    color: var(--gold-light);
+    margin-bottom: 0.2rem;
+    text-transform: uppercase;
+  }
+
+  .photo-frame-corner {
+    position: absolute;
+    width: 20px; height: 20px;
+    border-color: var(--gold);
+    border-style: solid;
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .photo-card:hover .photo-frame-corner { opacity: 1; }
+  .corner-tl { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+  .corner-tr { top: 8px; right: 8px; border-width: 1px 1px 0 0; }
+  .corner-bl { bottom: 8px; left: 8px; border-width: 0 0 1px 1px; }
+  .corner-br { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+
+  /* ══════════════════════════════════════
+     LOVE LETTER SECTION
+  ══════════════════════════════════════ */
+  #letter {
+    padding: 8rem 2rem;
+    background: radial-gradient(ellipse at 50% 50%, #2a0812 0%, #0e0508 70%);
+    text-align: center;
+    position: relative;
+  }
+
+  .letter-container {
+    max-width: 680px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .letter-quote-mark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 10rem;
+    line-height: 0.5;
+    color: var(--rose-dark);
+    opacity: 0.3;
+    position: absolute;
+    top: -1rem;
+    left: -2rem;
+    pointer-events: none;
+  }
+
+  .letter-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 300;
+    line-height: 1.9;
+    color: var(--cream);
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 1.2s;
+  }
+  .letter-text.visible { opacity: 0.9; transform: translateY(0); }
+
+  .letter-signature {
+    margin-top: 3rem;
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(2rem, 5vw, 3rem);
+    background: linear-gradient(135deg, var(--rose-light), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 0;
+    transition: opacity 1s 0.5s;
+  }
+  .letter-signature.visible { opacity: 1; }
+
+  /* ══════════════════════════════════════
+     FOREVER SECTION
+  ══════════════════════════════════════ */
+  #forever {
+    padding: 10rem 2rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: radial-gradient(ellipse 80% 60% at 50% 50%, #3a0a1a 0%, #0a0508 70%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .heart-beat {
+    width: clamp(80px, 15vw, 140px);
+    height: clamp(80px, 15vw, 140px);
+    position: relative;
+    margin-bottom: 3rem;
+    animation: heartBeat 2s ease-in-out infinite;
+    opacity: 0;
+    transition: opacity 1s;
+  }
+  .heart-beat.visible { opacity: 1; }
+  @keyframes heartBeat {
+    0%, 100% { transform: scale(1); }
+    14% { transform: scale(1.12); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.08); }
+    56% { transform: scale(1); }
+  }
+
+  .forever-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(3rem, 10vw, 8rem);
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--gold-light) 0%, var(--rose-light) 50%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    filter: drop-shadow(0 0 30px rgba(200,82,107,0.5));
+  }
+  .forever-title.visible { opacity: 1; transform: scale(1); }
+
+  .forever-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    color: var(--cream);
+    opacity: 0;
+    transition: opacity 1s 0.4s;
+    margin-top: 1.5rem;
+  }
+  .forever-sub.visible { opacity: 0.7; }
+
+  .forever-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(200,82,107,0.15);
+    animation: ringPulse 4s ease-in-out infinite;
+  }
+  @keyframes ringPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+    50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.1; }
+  }
+
+  /* ══════════════════════════════════════
+     ANIMATIONS
+  ══════════════════════════════════════ */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* ══════════════════════════════════════
+     DIVIDERS
+  ══════════════════════════════════════ */
+  .ornamental-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 2rem auto;
+    max-width: 400px;
+  }
+  .ornamental-divider span {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+  .ornamental-divider .diamond {
+    width: 5px; height: 5px;
+    background: var(--gold);
+    transform: rotate(45deg);
+    flex: none;
+  }
+
+  /* fireflies */
+  .firefly {
+    position: fixed;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--gold-light);
+    pointer-events: none;
+    z-index: 1;
+    animation: fireflyFloat linear infinite;
+    opacity: 0;
+  }
+  @keyframes fireflyFloat {
+    0%   { opacity: 0; transform: translate(0, 0); }
+    20%  { opacity: 0.8; }
+    80%  { opacity: 0.6; }
+    100% { opacity: 0; transform: translate(var(--tx), var(--ty)); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Stars canvas -->
+<canvas id="starfield"></canvas>
+
+<!-- ══ HERO ══ -->
+<section id="hero">
+  <div class="hero-vignette"></div>
+
+  <p class="hero-ornament">✦ Dos Años de Amor Eterno ✦</p>
+
+  <div class="hero-monogram">
+    C<span class="hero-ampersand">&amp;</span>R
+  </div>
+
+  <p class="hero-title">por siempre es por siempre</p>
+
+           <div class="hero-line"><span>✦ 29 · 02 · 2024 — 01 · 03 · 2026 ✦</span></div>
+
+  <p class="hero-date">Feliz Segundo Aniversario, mi amor</p>
+
+                     <div class="scroll-hint">
+
+    
+                        <span>Descubre</span>
+
+    <div class="scroll-arrow"></div>
+
+  </div>
+</section>
+
+<!-- ══ COUNTER ══ -->
+<section id="counter">
+  <p class="section-label">Cada momento contigo vale un universo</p>
+
+  <div class="ornamental-divider">
+    <span></span><div class="diamond"></div><span></span>
+  </div>
+
+  <div class="counter-grid">
+    <div class="counter-item">
+      <div class="counter-number" id="cnt-years">2</div>
+      <div class="counter-label">Años</div>
+    </div>
+    <div class="counter-item">
+      <div class="counter-number" id="cnt-months">24</div>
+      <div class="counter-label">Meses</div>
+    </div>
+    <div class="counter-item">
+      <div class="counter-number" id="cnt-days">730</div>
+      <div class="counter-label">Días</div>
+    </div>
+    <div class="counter-item">
+      <div class="counter-number" id="cnt-hours">—</div>
+      <div class="counter-label">Horas</div>
+    </div>
+  </div>
+
+  <p class="counter-tagline">juntos y contando...</p>
+</section>
+
+<!-- ══ PHOTOS ══ -->
+<section id="photos">
+  <div class="photos-header">
+    <p class="section-label">Nuestros Capítulos</p>
+    <h2 class="photos-title">Dos años, una historia infinita</h2>
+  </div>
+
+  <div class="photos-grid">
+    <div class="photo-card">
+      <div class="photo-frame-corner corner-tl"></div>
+      <div class="photo-frame-corner corner-tr"></div>
+      <div class="photo-frame-corner corner-bl"></div>
+      <div class="photo-frame-corner corner-br"></div>
+      <img src="imagenes/enero.jpeg" 
+           onerror="this.src='imagenes/enero.jpeg'; this.onerror=()=>{this.src='imagenes/enero.png'}"
+           alt="Enero — Primer mes" loading="lazy">
+      <div class="photo-overlay"></div>
+      <div class="photo-caption">
+        <small>EL AMOR</small>
+        Nuestras Aventuras
+      </div>
+    </div>
+
+    <div class="photo-card">
+      <div class="photo-frame-corner corner-tl"></div>
+      <div class="photo-frame-corner corner-tr"></div>
+      <div class="photo-frame-corner corner-bl"></div>
+      <div class="photo-frame-corner corner-br"></div>
+      <img src="imagenes/febrero.jpeg"
+           onerror="this.src='imagenes/febrero.jpeg'; this.onerror=()=>{this.src='imagenes/febrero.png'}"
+           alt="Febrero — Segundo mes" loading="lazy">
+      <div class="photo-overlay"></div>
+      <div class="photo-caption">
+        <small>LAS MIRADAS</small>
+        El amor se profundizó
+      </div>
+    </div>
+
+    <div class="photo-card">
+      <div class="photo-frame-corner corner-tl"></div>
+      <div class="photo-frame-corner corner-tr"></div>
+      <div class="photo-frame-corner corner-bl"></div>
+      <div class="photo-frame-corner corner-br"></div>
+      <img src="imagenes/marzo.jpeg"
+           onerror="this.src='imagenes/marzo.jpeg'; this.onerror=()=>{this.src='imagenes/marzo.png'}"
+           alt="Marzo — Dos años" loading="lazy">
+      <div class="photo-overlay"></div>
+      <div class="photo-caption">
+        <small>EL DESTINO Y LA UNION POR SIEMPRE</small>
+        Dos años de pura magia
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ LETTER ══ -->
+<section id="letter">
+  <div class="letter-container">
+    <div class="letter-quote-mark">"</div>
+
+    <div class="ornamental-divider">
+      <span></span><div class="diamond"></div><span></span>
+    </div>
+
+    <p class="section-label">Para ti, siempre</p>
+
+    <p class="letter-text">
+      Han pasado dos años desde que mi mundo cambió para siempre.<br><br>
+      Cada día contigo es un regalo unico y el mas hermoso de este mundo.<br>
+      En cada risa, en cada abrazo, en cada silencio que compartimos,<br>
+      encuentro la razón más grande de todas.<br><br>
+      <em>Tú eres mi lugar favorito en el mundo.</em>
+    </p>
+
+    <div class="letter-signature">
+      C &amp; R — por siempre
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOREVER ══ -->
+<section id="forever">
+  <!-- pulsing rings -->
+  <div class="forever-ring" style="width:300px;height:300px;left:50%;top:50%;transform:translate(-50%,-50%);animation-delay:0s;"></div>
+  <div class="forever-ring" style="width:500px;height:500px;left:50%;top:50%;transform:translate(-50%,-50%);animation-delay:1s;"></div>
+  <div class="forever-ring" style="width:700px;height:700px;left:50%;top:50%;transform:translate(-50%,-50%);animation-delay:2s;"></div>
+
+  <div class="heart-beat">
+    <svg viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+      <defs>
+        <linearGradient id="hg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#e8899a"/>
+          <stop offset="100%" stop-color="#c9973a"/>
+        </linearGradient>
+      </defs>
+      <path d="M50 85 C50 85 5 55 5 28 C5 14 16 5 27 5 C35 5 43 9 50 18 C57 9 65 5 73 5 C84 5 95 14 95 28 C95 55 50 85 50 85Z" fill="url(#hg)" opacity="0.9"/>
+    </svg>
+  </div>
+
+  <h2 class="forever-title">POR SIEMPRE</h2>
+  <p class="forever-sub">C &amp; R — 29 · 02 · 2024 ∞</p>
+</section>
+
+<script>
+/* ── CURSOR ── */
+const cursor = document.getElementById('cursor');
+const ring   = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+(function moveCursor() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+  ring.style.left   = rx + 'px'; ring.style.top  = ry + 'px';
+  requestAnimationFrame(moveCursor);
+})();
+
+/* ── STARFIELD ── */
+const canvas = document.getElementById('starfield');
+const ctx = canvas.getContext('2d');
+let stars = [];
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+function initStars() {
+  stars = Array.from({length: 200}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.2 + 0.2,
+    o: Math.random(),
+    speed: Math.random() * 0.004 + 0.001,
+    phase: Math.random() * Math.PI * 2,
+  }));
+}
+function drawStars(t) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  stars.forEach(s => {
+    const opacity = (Math.sin(t * s.speed + s.phase) + 1) / 2 * s.o;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(232, 201, 122, ${opacity})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+resize(); initStars(); requestAnimationFrame(drawStars);
+window.addEventListener('resize', () => { resize(); initStars(); });
+
+/* ── PETALS ── */
+function createPetal() {
+  const p = document.createElement('div');
+  p.className = 'petal';
+  const size = Math.random() * 12 + 8;
+  p.style.cssText = `
+    left: ${Math.random() * 110 - 5}vw;
+    top: -${size}px;
+    width: ${size}px;
+    height: ${size}px;
+    animation-duration: ${Math.random() * 8 + 8}s;
+    animation-delay: ${Math.random() * 6}s;
+  `;
+  p.innerHTML = `<svg viewBox="0 0 20 20" width="${size}" height="${size}"><ellipse cx="10" cy="10" rx="6" ry="9" transform="rotate(${Math.random()*360},10,10)" opacity="0.7"/></svg>`;
+  document.body.appendChild(p);
+  setTimeout(() => p.remove(), 20000);
+}
+setInterval(createPetal, 600);
+
+/* ── FIREFLIES ── */
+function createFirefly() {
+  const f = document.createElement('div');
+  f.className = 'firefly';
+  const x = Math.random() * window.innerWidth;
+  const y = Math.random() * window.innerHeight;
+  const tx = (Math.random() - 0.5) * 200 + 'px';
+  const ty = (Math.random() - 0.5) * 200 + 'px';
+  f.style.cssText = `left:${x}px;top:${y}px;--tx:${tx};--ty:${ty};animation-duration:${Math.random()*4+3}s;animation-delay:${Math.random()*3}s;box-shadow:0 0 6px 2px rgba(201,151,58,0.4)`;
+  document.body.appendChild(f);
+  setTimeout(() => f.remove(), 10000);
+}
+setInterval(createFirefly, 400);
+
+/* ── LIVE COUNTEE ── */
+function updateCounter() {
+  const start = new Date('2024-02-29T00:00:00');
+  const anniversary = new Date('2026-03-01T00:00:00');
+  const now = new Date() < anniversary ? anniversary : new Date();
+
+  const ms = now - start;
+  const totalDays  = Math.floor(ms / 86400000);
+  const totalHours = Math.floor(ms / 3600000);
+
+  // Proper calendar years & months
+  let years  = now.getFullYear() - start.getFullYear();
+  let months = now.getMonth()    - start.getMonth();
+  if (now.getDate() < start.getDate()) {
+    const daysInCurMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    if (start.getDate() <= daysInCurMonth) months--;
+  }
+  if (months < 0) { years--; months += 12; }
+  const totalMonths = years * 12 + months;
+
+  document.getElementById('cnt-years').textContent  = years;
+  document.getElementById('cnt-months').textContent = totalMonths;
+  document.getElementById('cnt-days').textContent   = totalDays.toLocaleString();
+  document.getElementById('cnt-hours').textContent  = totalHours.toLocaleString();
+}
+updateCounter();
+setInterval(updateCounter, 60000);
+
+/* ── SCROLL REVEAL ── */
+const revealEls = document.querySelectorAll(
+  '.section-label, .counter-item, .counter-tagline, .photos-title, .photo-card, .letter-text, .letter-signature, .heart-beat, .forever-title, .forever-sub'
+);
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+revealEls.forEach(el => io.observe(el));
+
+/* ── PARALLAX HERO ── */
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  document.querySelector('.hero-monogram').style.transform = `translateY(${y * 0.25}px)`;
+});
+</script>
+</body>
+</html>
